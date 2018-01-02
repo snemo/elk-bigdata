@@ -2,6 +2,7 @@ package com.nuxplanet.bigdata.elkbigdata.domain;
 
 import lombok.Builder;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -14,6 +15,7 @@ import java.util.Objects;
  * A Transaction.
  */
 @Document(collection = "transaction")
+@org.springframework.data.elasticsearch.annotations.Document(indexName = "transaction")
 public class Transaction implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -22,12 +24,14 @@ public class Transaction implements Serializable {
     private String id;
 
     @Field("transaction_date")
+    @org.springframework.data.elasticsearch.annotations.Field(type = FieldType.Date)
     private ZonedDateTime transactionDate;
 
     @Field("product")
     private String product;
 
     @Field("price")
+    @org.springframework.data.elasticsearch.annotations.Field(type = FieldType.Double)
     private BigDecimal price;
 
     @Field("payment_type")
@@ -46,15 +50,19 @@ public class Transaction implements Serializable {
     private String country;
 
     @Field("account_creation_date")
+    @org.springframework.data.elasticsearch.annotations.Field(type = FieldType.Date)
     private ZonedDateTime accountCreationDate;
 
     @Field("last_login")
+    @org.springframework.data.elasticsearch.annotations.Field(type = FieldType.Date)
     private ZonedDateTime lastLogin;
 
     @Field("latitude")
+    @org.springframework.data.elasticsearch.annotations.Field(type = FieldType.Double)
     private Double latitude;
 
     @Field("longitude")
+    @org.springframework.data.elasticsearch.annotations.Field(type = FieldType.Double)
     private Double longitude;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove

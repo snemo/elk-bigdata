@@ -1,29 +1,32 @@
 package com.nuxplanet.bigdata.elkbigdata.config;
 
-import com.mongodb.MongoClient;
-import com.nuxplanet.bigdata.elkbigdata.batch.JobCompletionListener;
-import com.nuxplanet.bigdata.elkbigdata.batch.TransactionFieldSetMapper;
-import com.nuxplanet.bigdata.elkbigdata.batch.TransactionProcessor;
+import com.nuxplanet.bigdata.elkbigdata.batch.*;
 import com.nuxplanet.bigdata.elkbigdata.domain.Transaction;
+import com.nuxplanet.bigdata.elkbigdata.repository.TransactionRepository;
+import com.nuxplanet.bigdata.elkbigdata.repository.search.TransactionSearchRepository;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.item.data.MongoItemReader;
 import org.springframework.batch.item.data.MongoItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
-import org.springframework.batch.item.file.transform.LineTokenizer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableBatchProcessing
@@ -31,16 +34,20 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 public class BatchConfig {
 
     @Autowired
-    public JobBuilderFactory jobBuilderFactory;
+    private JobBuilderFactory jobBuilderFactory;
 
     @Autowired
-    public StepBuilderFactory stepBuilderFactory;
+    private StepBuilderFactory stepBuilderFactory;
 
     @Autowired
-    public MongoClient mongoClient;
+    private MongoTemplate mongoTemplate;
 
     @Autowired
-    public MongoTemplate mongoTemplate;
+    private TransactionSearchRepository searchRepository;
+
+    @Autowired
+    private TransactionRepository repository;
+
 
     @Bean
     public TransactionProcessor transactionProcessor() {
@@ -68,8 +75,18 @@ public class BatchConfig {
     public ItemWriter<Transaction> writer() {
         MongoItemWriter<Transaction> writer = new MongoItemWriter<Transaction>();
         writer.setTemplate(mongoTemplate);
-        writer.setCollection("transactionswy");
+        writer.setCollection("transactions");
         return writer;
+    }
+
+    @Bean
+    public ItemWriter<Transaction> elasticSearchWriter() {
+        return new ElasticsearchItemWriter<>(searchRepository);
+    }
+
+    @Bean
+    public ItemReader<Transaction> mongoDBReader() {
+        return new MongoRepoItemReader<Transaction>(repository);
     }
 
     @Bean
@@ -91,6 +108,29 @@ public class BatchConfig {
                 .end()
                 .build();
     }
+
+    @Bean
+    public Step indexStep() {
+        return stepBuilderFactory.get("indexStep")
+                .<Transaction, Transaction>chunk(50)
+                .reader(mongoDBReader())
+                .writer(elasticSearchWriter())
+                .build();
+    }
+
+    @Bean
+    public Job indexJob(JobCompletionListener listener) {
+        return jobBuilderFactory.get("indexJob")
+                .incrementer(new RunIdIncrementer())
+                .listener(listener)
+                .flow(indexStep())
+                .end()
+                .build();
+    }
+
+
+
+
 
 
 }
