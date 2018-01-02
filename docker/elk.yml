@@ -10,6 +10,11 @@ services:
     environment:
       - discovery.type=single-node
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+#      - "http.host=0.0.0.0"
+#      - "transport.host=0.0.0.0"
+    volumes:
+      - ./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+
     networks:
       - elk
   kibana:

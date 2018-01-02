@@ -1,6 +1,5 @@
 package com.nuxplanet.bigdata.elkbigdata.domain;
 
-import lombok.Builder;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -8,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -25,7 +24,7 @@ public class Transaction implements Serializable {
 
     @Field("transaction_date")
     @org.springframework.data.elasticsearch.annotations.Field(type = FieldType.Date)
-    private ZonedDateTime transactionDate;
+    private Date transactionDate;
 
     @Field("product")
     private String product;
@@ -51,11 +50,11 @@ public class Transaction implements Serializable {
 
     @Field("account_creation_date")
     @org.springframework.data.elasticsearch.annotations.Field(type = FieldType.Date)
-    private ZonedDateTime accountCreationDate;
+    private Date accountCreationDate;
 
     @Field("last_login")
     @org.springframework.data.elasticsearch.annotations.Field(type = FieldType.Date)
-    private ZonedDateTime lastLogin;
+    private Date lastLogin;
 
     @Field("latitude")
     @org.springframework.data.elasticsearch.annotations.Field(type = FieldType.Double)
@@ -74,16 +73,16 @@ public class Transaction implements Serializable {
         this.id = id;
     }
 
-    public ZonedDateTime getTransactionDate() {
+    public Date getTransactionDate() {
         return transactionDate;
     }
 
-    public Transaction transactionDate(ZonedDateTime transactionDate) {
+    public Transaction transactionDate(Date transactionDate) {
         this.transactionDate = transactionDate;
         return this;
     }
 
-    public void setTransactionDate(ZonedDateTime transactionDate) {
+    public void setTransactionDate(Date transactionDate) {
         this.transactionDate = transactionDate;
     }
 
@@ -178,29 +177,29 @@ public class Transaction implements Serializable {
         this.country = country;
     }
 
-    public ZonedDateTime getAccountCreationDate() {
+    public Date getAccountCreationDate() {
         return accountCreationDate;
     }
 
-    public Transaction accountCreationDate(ZonedDateTime accountCreationDate) {
+    public Transaction accountCreationDate(Date accountCreationDate) {
         this.accountCreationDate = accountCreationDate;
         return this;
     }
 
-    public void setAccountCreationDate(ZonedDateTime accountCreationDate) {
+    public void setAccountCreationDate(Date accountCreationDate) {
         this.accountCreationDate = accountCreationDate;
     }
 
-    public ZonedDateTime getLastLogin() {
+    public Date getLastLogin() {
         return lastLogin;
     }
 
-    public Transaction lastLogin(ZonedDateTime lastLogin) {
+    public Transaction lastLogin(Date lastLogin) {
         this.lastLogin = lastLogin;
         return this;
     }
 
-    public void setLastLogin(ZonedDateTime lastLogin) {
+    public void setLastLogin(Date lastLogin) {
         this.lastLogin = lastLogin;
     }
 

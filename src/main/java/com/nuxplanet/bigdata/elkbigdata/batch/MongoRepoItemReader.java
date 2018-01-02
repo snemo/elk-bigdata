@@ -1,6 +1,7 @@
 package com.nuxplanet.bigdata.elkbigdata.batch;
 
 import org.springframework.batch.item.data.AbstractPaginatedDataItemReader;
+import org.springframework.batch.item.data.MongoItemReader;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.util.ClassUtils;
@@ -12,6 +13,7 @@ public class MongoRepoItemReader<T> extends AbstractPaginatedDataItemReader<T> {
     private final MongoRepository repository;
 
     public MongoRepoItemReader(MongoRepository repository) {
+        super();
         this.repository = repository;
         setName(ClassUtils.getShortName(MongoRepoItemReader.class));
     }

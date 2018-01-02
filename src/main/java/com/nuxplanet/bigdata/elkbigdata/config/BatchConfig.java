@@ -75,7 +75,7 @@ public class BatchConfig {
     public ItemWriter<Transaction> writer() {
         MongoItemWriter<Transaction> writer = new MongoItemWriter<Transaction>();
         writer.setTemplate(mongoTemplate);
-        writer.setCollection("transactions");
+        writer.setCollection("transaction");
         return writer;
     }
 

@@ -1,5 +1,8 @@
 package com.nuxplanet.bigdata.elkbigdata.web.rest;
 
+import com.nuxplanet.bigdata.elkbigdata.domain.Transaction;
+import com.nuxplanet.bigdata.elkbigdata.repository.TransactionRepository;
+import com.nuxplanet.bigdata.elkbigdata.repository.search.TransactionSearchRepository;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -9,9 +12,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/transaction")
 public class TransactionResource {
+
+    @Autowired
+    TransactionSearchRepository searchRepository;
+
+    @Autowired
+    TransactionRepository repository;
 
     @Autowired
     JobLauncher jobLauncher;
@@ -32,5 +43,15 @@ public class TransactionResource {
     @GetMapping("/index")
     public void runIndex() throws Exception {
         jobLauncher.run(indexJob, new JobParameters());
+    }
+
+    @GetMapping("/all-elasticsearch")
+    public Iterable<Transaction> findAllElasticsearch() {
+        return searchRepository.findAll();
+    }
+
+    @GetMapping("/all-mongodb")
+    public List<Transaction> findAllMongodb() {
+        return repository.findAll();
     }
 }
