@@ -1,131 +1,51 @@
 package com.nuxplanet.bigdata.elkbigdata.config;
 
-import com.nuxplanet.bigdata.elkbigdata.batch.*;
-import com.nuxplanet.bigdata.elkbigdata.domain.Transaction;
-import com.nuxplanet.bigdata.elkbigdata.repository.TransactionRepository;
-import com.nuxplanet.bigdata.elkbigdata.repository.search.TransactionSearchRepository;
-import org.springframework.batch.core.Job;
-import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.JobRegistry;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
-import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.launch.support.RunIdIncrementer;
-import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.data.MongoItemWriter;
-import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.mapping.DefaultLineMapper;
-import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.core.configuration.support.AutomaticJobRegistrar;
+import org.springframework.batch.core.configuration.support.JobRegistryBeanPostProcessor;
+import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.JobOperator;
+import org.springframework.batch.core.launch.support.SimpleJobOperator;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.mongodb.core.MongoTemplate;
 
 @Configuration
 @EnableBatchProcessing
 @PropertySource("classpath:batch.properties")
 public class BatchConfig {
-
     @Autowired
-    private JobBuilderFactory jobBuilderFactory;
-
+    JobRepository jobRepository;
     @Autowired
-    private StepBuilderFactory stepBuilderFactory;
-
+    JobRegistry jobRegistry;
     @Autowired
-    private MongoTemplate mongoTemplate;
-
+    JobLauncher jobLauncher;
     @Autowired
-    private TransactionSearchRepository searchRepository;
-
-    @Autowired
-    private TransactionRepository repository;
-
+    JobExplorer jobExplorer;
 
     @Bean
-    public TransactionProcessor transactionProcessor() {
-        return new TransactionProcessor();
+    public JobOperator jobOperator() {
+        SimpleJobOperator jobOperator = new SimpleJobOperator();
+        jobOperator.setJobExplorer(jobExplorer);
+        jobOperator.setJobLauncher(jobLauncher);
+        jobOperator.setJobRegistry(jobRegistry);
+        jobOperator.setJobRepository(jobRepository);
+        return jobOperator;
     }
 
+    /**
+     * This is a bean post-processor that can register all jobs as they are created:
+     * @param jobRegistry
+     * @return
+     */
     @Bean
-    public FlatFileItemReader<Transaction> reader() {
-        FlatFileItemReader<Transaction> reader = new FlatFileItemReader<Transaction>();
-        reader.setResource(new ClassPathResource("SalesJan2009.csv"));
-        reader.setLineMapper(new DefaultLineMapper<Transaction>(){{
-            setFieldSetMapper(new TransactionFieldSetMapper());
-            setLineTokenizer(new DelimitedLineTokenizer());
-        }});
-
-        return reader;
+    public JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor(JobRegistry jobRegistry) {
+        JobRegistryBeanPostProcessor jobRegistryBeanPostProcessor = new JobRegistryBeanPostProcessor();
+        jobRegistryBeanPostProcessor.setJobRegistry(jobRegistry);
+        return jobRegistryBeanPostProcessor;
     }
-
-    @Bean
-    public TransactionProcessor processor() {
-        return new TransactionProcessor();
-    }
-
-    @Bean
-    public ItemWriter<Transaction> writer() {
-        MongoItemWriter<Transaction> writer = new MongoItemWriter<Transaction>();
-        writer.setTemplate(mongoTemplate);
-        writer.setCollection("transaction");
-        return writer;
-    }
-
-    @Bean
-    public ItemWriter<Transaction> elasticSearchWriter() {
-        return new ElasticsearchItemWriter<>(searchRepository);
-    }
-
-    @Bean
-    public ItemReader<Transaction> mongoDBReader() {
-        return new MongoRepoItemReader<Transaction>(repository);
-    }
-
-    @Bean
-    public Step importStep() {
-        return stepBuilderFactory.get("transactionStep")
-                .<Transaction, Transaction>chunk(10)
-                .reader(reader())
-                .processor(processor())
-                .writer(writer())
-                .build();
-    }
-
-    @Bean
-    public Job importJob(JobCompletionListener listener) {
-        return jobBuilderFactory.get("transactionJob")
-                .incrementer(new RunIdIncrementer())
-                .listener(listener)
-                .flow(importStep())
-                .end()
-                .build();
-    }
-
-    @Bean
-    public Step indexStep() {
-        return stepBuilderFactory.get("indexStep")
-                .<Transaction, Transaction>chunk(50)
-                .reader(mongoDBReader())
-                .writer(elasticSearchWriter())
-                .build();
-    }
-
-    @Bean
-    public Job indexJob(JobCompletionListener listener) {
-        return jobBuilderFactory.get("indexJob")
-                .incrementer(new RunIdIncrementer())
-                .listener(listener)
-                .flow(indexStep())
-                .end()
-                .build();
-    }
-
-
-
-
-
-
 }

@@ -6,6 +6,7 @@ import com.nuxplanet.bigdata.elkbigdata.repository.search.TransactionSearchRepos
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +36,9 @@ public class TransactionResource {
     @Qualifier("indexJob")
     Job indexJob;
 
+    @Autowired
+    JobOperator jobOperator;
+
     @GetMapping("/import")
     public void runImport() throws Exception {
         jobLauncher.run(importJob, new JobParameters());
@@ -42,7 +46,7 @@ public class TransactionResource {
 
     @GetMapping("/index")
     public void runIndex() throws Exception {
-        jobLauncher.run(indexJob, new JobParameters());
+        jobOperator.start(indexJob.getName(), "");
     }
 
     @GetMapping("/all-elasticsearch")
