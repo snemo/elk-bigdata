@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/transaction")
+@RequestMapping("/api/airpollution")
 public class AirPollutionResource {
 
     @Autowired
@@ -20,8 +20,17 @@ public class AirPollutionResource {
     @Qualifier("airPollutionImportJob")
     Job importJob;
 
+    @Autowired
+    @Qualifier("airPollutionIndexJob")
+    Job indexJob;
+
     @GetMapping("/import")
     public void runImport() throws Exception {
         jobLauncher.run(importJob, new JobParameters());
+    }
+
+    @GetMapping("/index")
+    public void runIndex() throws Exception {
+        jobLauncher.run(indexJob, new JobParameters());
     }
 }
