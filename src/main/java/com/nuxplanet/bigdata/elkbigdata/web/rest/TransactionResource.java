@@ -47,6 +47,7 @@ public class TransactionResource {
     @GetMapping("/index")
     public void runIndex() throws Exception {
         jobOperator.start(indexJob.getName(), "");
+
     }
 
     @GetMapping("/all-elasticsearch")

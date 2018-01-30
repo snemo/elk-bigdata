@@ -29,6 +29,8 @@ repositories {
 
 
 dependencies {
+	compile('com.nuxplanet:spring-starter-batch-rest')
+
 	compile('org.springframework.boot:spring-boot-starter-data-elasticsearch')
 	compile('org.springframework.boot:spring-boot-starter-data-mongodb')
 	compile('org.springframework.boot:spring-boot-starter-batch')

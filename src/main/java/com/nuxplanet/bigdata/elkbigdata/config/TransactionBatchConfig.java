@@ -1,15 +1,19 @@
 package com.nuxplanet.bigdata.elkbigdata.config;
 
 import com.nuxplanet.bigdata.elkbigdata.batch.*;
+import com.nuxplanet.bigdata.elkbigdata.batch.transaction.TransactionChunkListener;
 import com.nuxplanet.bigdata.elkbigdata.domain.Transaction;
 import com.nuxplanet.bigdata.elkbigdata.repository.TransactionRepository;
 import com.nuxplanet.bigdata.elkbigdata.repository.search.TransactionSearchRepository;
+import com.nuxplanet.springbatchrest.listener.DefaultChunkListener;
+import org.springframework.batch.core.ChunkListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.support.AutomaticJobRegistrar;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.MongoItemWriter;
@@ -39,6 +43,12 @@ public class TransactionBatchConfig {
 
     @Autowired
     private TransactionRepository repository;
+
+    @Autowired
+    private JobRepository jobRepository;
+
+    @Autowired
+    private ChunkListener chunkListener;
 
     @Bean
     public TransactionProcessor transactionProcessor() {
@@ -87,6 +97,7 @@ public class TransactionBatchConfig {
                 .reader(reader())
                 .processor(processor())
                 .writer(writer())
+                .listener(new DefaultChunkListener())
                 .build();
     }
 
@@ -95,6 +106,7 @@ public class TransactionBatchConfig {
         return jobBuilderFactory.get("transactionJob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
+                .repository(jobRepository)
                 .flow(importStep())
                 .end()
                 .build();
@@ -106,6 +118,7 @@ public class TransactionBatchConfig {
                 .<Transaction, Transaction>chunk(50)
                 .reader(mongoDBReader())
                 .writer(elasticSearchWriter())
+                .listener(new DefaultChunkListener())
                 .build();
     }
 
@@ -114,6 +127,7 @@ public class TransactionBatchConfig {
         return jobBuilderFactory.get("indexJob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
+                .repository(jobRepository)
                 .flow(indexStep())
                 .end()
                 .build();

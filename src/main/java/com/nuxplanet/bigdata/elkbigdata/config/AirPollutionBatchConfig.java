@@ -14,6 +14,7 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.MongoItemWriter;
@@ -44,6 +45,9 @@ public class AirPollutionBatchConfig {
 
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
+
+    @Autowired
+    private JobRepository jobRepository;
 
     @Bean
     public FlatFileItemReader<AirPollution> airPollutionCSVReader() {
@@ -96,6 +100,7 @@ public class AirPollutionBatchConfig {
     public Job airPollutionImportJob(JobCompletionListener listener) {
         return jobBuilderFactory.get("airPollutionJob")
                 .incrementer(new RunIdIncrementer())
+                .repository(jobRepository)
                 .listener(listener)
                 .flow(airPollutionImportStep())
                 .end()
@@ -116,6 +121,7 @@ public class AirPollutionBatchConfig {
         return jobBuilderFactory.get("airPollutionIndexJob")
                 .incrementer(new RunIdIncrementer())
                 .listener(listener)
+                .repository(jobRepository)
                 .flow(airPollutionIndexStep())
                 .end()
                 .build();
